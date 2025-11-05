@@ -1,0 +1,42 @@
+@startuml
+    entity user {
+      id : UUID <<PK>>
+      --
+      name : VARCHAR(256)
+    }
+
+    entity building {
+      id : UUID <<PK>>
+      --
+      user_id: UUID <<FK>>
+      name : VARCHAR(256)
+      address: VARCHAR(1024)
+    }
+
+    entity room {
+      id : UUID <<PK>>
+      --
+      building_id: UUID <<FK>>
+    }
+
+    entity thing {
+        id : UUID <<PK>>
+        --
+        room_id: UUID <<FK>>
+        thing_type_id: UUID <<FK>>
+        name : VARCHAR(256)
+        status: VARCHAR(256)
+    }
+
+    entity thing_type {
+        id : UUID <<PK>>
+        --
+        name : VARCHAR(256)
+    }
+
+    user "1" -- "n" building
+    building "1" -- "n" room
+    room "1" -- "n" thing
+
+    thing_type "1" -- "1" thing
+@enduml

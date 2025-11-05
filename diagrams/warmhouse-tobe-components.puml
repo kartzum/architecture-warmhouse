@@ -1,0 +1,107 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(admin, "Администратор", "Управляет системой, управляет настройками пользователей, управляет настройками устройств")
+Person(user, "Пользователь", "Управляет устройствами отопления, света, воротами, просматривает телеметрию, настраивает сценарии и устройства")
+
+
+Container(web_app, "Web Application", "React/Angular", "Веб-интерфейс для управления системой")
+Container(mobile_app, "Mobile App", "iOS/Android", "Мобильное приложение для удаленного доступа")
+
+
+Container(api_gateway, "API Gateway", "REST API", "Единая точка входа для всех клиентов")
+
+Container(message_broker, "Message Broker")
+
+Container(integration_broker, "Integration Broker")
+
+ContainerDb(rule_db, "Rule Database", "PostgreSQL", "Хранит сценарии")
+ContainerDb(thing_db, "Thing Database", "PostgreSQL", "Хранит данные устройств")
+
+ContainerDb(auth_db, "Auth Database", "PostgreSQL", "Хранит данные пользователей, роли, разрешения")
+
+ContainerDb(telemetry_db, "Telemetry Database", "TimescaleDB", "Хранит историческую телеметрию")
+
+Container_Boundary(auth_service, "Auth Service") {
+    Component(auth_controller, "Auth Controller", "MVC Rest Controller", "Управление аутентификацией/авторизацией")
+    Component(auth_processing_service, "Auth Processing Service", "Service", "Выполнение логики аутентификации/авторизации")
+    Component(auth_repository, "Auth Repository", "Repository", "Хранение данных аутентификации/авторизации")
+
+    Rel(auth_controller, auth_processing_service, "Работает с аутентификацией/авторизацией", "")
+    Rel(auth_processing_service, auth_repository, "Обновляет данные", "")
+    Rel(auth_repository, auth_db, "Читает/записывает данные", "JDBC")
+}
+
+Container_Boundary(thing_service, "Thing Management Service") {
+    Component(thing_controller, "Things Controller", "MVC Rest Controller", "Управление устройствами")
+    Component(thing_processing_service, "Things Processing Service", "Service", "Выполнение логики управления устройствами")
+    Component(thing_repository, "Things Repository", "Repository", "Хранение устройств")
+
+    Component(thing_manager, "Things Manager", "Service", "Управление жизненным циклом устройств")
+
+    Rel(thing_controller, thing_processing_service, "Работает с устройствами", "")
+    Rel(thing_processing_service, thing_repository, "Обновляет устройства", "")
+    Rel(thing_repository, thing_db, "Читает/записывает устройства", "JDBC")
+
+    Rel(thing_manager, thing_processing_service, "Работает с устройствами", "")
+    Rel(thing_manager, message_broker, "Читает/публикует сообщения", "")
+}
+
+Container_Boundary(rule_service, "Rule Service") {
+    Component(rule_controller, "Rules Controller", "MVC Rest Controller", "Управление сценариями")
+    Component(rule_engine, "Rules Engine", "Rules Engine", "Выполнение сценариев автоматизации")
+    Component(rule_processing_service, "Rules Processing Service", "Service", "Выполнение логики сценариев")
+    Component(rule_repository, "Rules Repository", "Repository", "Хранение сценариев")
+
+    Rel(rule_controller, rule_processing_service, "Работает со сценариями", "")
+    Rel(rule_processing_service, rule_repository, "Обновляет сценарии", "")
+    Rel(rule_repository, rule_db, "Читает/записывает сценарии", "JDBC")
+
+    Rel(rule_engine, rule_processing_service, "Работает со сценариями", "")
+    Rel(rule_engine, message_broker, "Читает/публикует сообщения", "")
+}
+
+Container_Boundary(telemetry_service, "Telemetry Service") {
+    Component(telemetry_controller, "Telemetry Controller", "MVC Rest Controller", "Управление телеметрией")
+    Component(telemetry_processing_service, "Telemetry Processing Service", "Service", "Выполнение логики работы с телеметрией")
+    Component(telemetry_repository, "Telemetry Repository", "Repository", "Хранение данных")
+
+    Rel(telemetry_controller, telemetry_processing_service, "Работает с телеметрией", "")
+    Rel(telemetry_processing_service, telemetry_repository, "Обновляет данные", "")
+    Rel(telemetry_repository, telemetry_db, "Читает/записывает данные", "JDBC")
+}
+
+Container_Boundary(internal_integration_service, "Internal integration Service") {
+    Component(mqtt_protocol_message_router, "Mqtt Protocol Message Router", "Protocol Handler", "Обработчик MQTT")
+    Component(video_protocol_adapter, "Video Protocol Adapter", "Protocol Handler", "Адаптер видео")
+}
+
+Container_Boundary(video_integration_service, "Video integration Service") {
+}
+
+Rel(admin, web_app, "Управляет системой через web-интерфейс", "HTTPS")
+Rel(user, mobile_app, "Использует для удаленного доступа", "HTTPS")
+Rel(user, web_app, "Просматривает телеметрию, управляет устройствами", "HTTPS")
+
+Rel(web_app, api_gateway, "Вызывает API через", "REST/HTTPS")
+Rel(mobile_app, api_gateway, "Вызывает API через", "REST/HTTPS")
+
+
+System_Ext(things_mqtt, "Модули и устройства MQTT", "Модули, устройства MQTT")
+System_Ext(things_video, "Камеры", "Камеры")
+
+
+Rel(api_gateway, auth_service, "Проверяет аутентификацию", "REST/HTTPS")
+Rel(api_gateway, thing_service, "Управление устройствами", "REST/HTTPS")
+Rel(api_gateway, rule_service, "Управление сценариями", "REST/HTTPS")
+Rel(api_gateway, telemetry_service, "Запрос телеметрии, бинарных данных", "REST/HTTPS")
+
+Rel(internal_integration_service, message_broker, "Читает/публикует сообщения", "AMQP")
+
+Rel(internal_integration_service, integration_broker, "Читает/публикует сообщения", "AMQP")
+Rel(internal_integration_service, video_integration_service, "Читает/записывает бинарные потоки", "TCP")
+
+Rel(video_integration_service, things_video, "Читает/записывает бинарные потоки", "TCP")
+Rel(integration_broker, things_mqtt, "Подключается по протоколам MQTT", "MQTT")
+
+@enduml

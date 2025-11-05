@@ -1,0 +1,62 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(admin, "Администратор", "Управляет системой, управляет настройками пользователей, управляет настройками устройств")
+Person(user, "Пользователь", "Управляет устройствами отопления, света, воротами, просматривает телеметрию, настраивает сценарии и устройства")
+
+System_Boundary(c1, "Система Теплый дом") {
+    Container(web_app, "Web Application", "React/Angular", "Веб-интерфейс для управления системой")
+    Container(mobile_app, "Mobile App", "iOS/Android", "Мобильное приложение для удаленного доступа")
+    Container(api_gateway, "API Gateway", "REST API", "Единая точка входа для всех клиентов")
+    Container(auth_service, "Auth Service", "Spring Boot", "Управление пользователями и аутентификацией")
+    Container(thing_service, "Thing Management Service", "Spring Boot", "Управление устройствами и их состоянием")
+    Container(rule_service, "Rule Service", "Spring Boot", "Управление сценариями автоматизации")
+    Container(telemetry_service, "Telemetry Service", "Spring Boot", "Сбор и анализ телеметрии")
+    Container(internal_integration_service, "Internal integration Service", "Integration", "Интеграция с устройствами")
+    Container(video_integration_service, "Video integration Service", "Integration", "Интеграция с камерами")
+
+    ContainerDb(auth_db, "Auth Database", "PostgreSQL", "Хранит данные пользователей, роли, разрешения")
+    ContainerDb(thing_db, "Thing Database", "PostgreSQL", "Хранит данные устройств")
+    ContainerDb(rule_db, "Rule Database", "PostgreSQL", "Хранит сценарии")
+    ContainerDb(telemetry_db, "Telemetry Database", "TimescaleDB", "Хранит историческую телеметрию")
+    ContainerDb(telemetry_binary_db, "Telemetry Binary Database", "DB", "Хранит бинарные потоки")
+
+    ContainerQueue(message_broker, "Message Broker", "RabbitMQ", "Асинхронная коммуникация между сервисами")
+
+    ContainerQueue(integration_broker, "Integration Broker", "RabbitMQ", "Интеграционная внутренняя коммуникация")
+}
+
+System_Ext(things_mqtt, "Модули и устройства MQTT", "Модули, устройства MQTT")
+System_Ext(things_video, "Камеры", "Камеры")
+
+' Connections
+Rel(admin, web_app, "Управляет системой через web-интерфейс", "HTTPS")
+Rel(user, mobile_app, "Использует для удаленного доступа", "HTTPS")
+Rel(user, web_app, "Просматривает телеметрию, управляет устройствами", "HTTPS")
+
+Rel(web_app, api_gateway, "Вызывает API через", "REST/HTTPS")
+Rel(mobile_app, api_gateway, "Вызывает API через", "REST/HTTPS")
+
+Rel(api_gateway, auth_service, "Проверяет аутентификацию", "REST/HTTPS")
+Rel(api_gateway, thing_service, "Управление устройствами", "REST/HTTPS")
+Rel(api_gateway, rule_service, "Управление сценариями", "REST/HTTPS")
+Rel(api_gateway, telemetry_service, "Запрос телеметрии, бинарных данных", "REST/HTTPS")
+
+Rel(auth_service, auth_db, "Читает/записывает данные", "JDBC")
+Rel(thing_service, thing_db, "Читает/записывает данные", "JDBC")
+Rel(rule_service, rule_db, "Читает/записывает сценарии", "JDBC")
+Rel(telemetry_service, telemetry_db, "Читает/записывает телеметрию", "JDBC")
+Rel(telemetry_service, telemetry_binary_db, "Читает/записывает бинарные потоки", "TCP")
+
+Rel(thing_service, message_broker, "Читает/публикует сообщения устройств", "AMQP")
+Rel(rule_service, message_broker, "Читает события устройств, телеметрии, публикует события сценариев", "AMQP")
+Rel(telemetry_service, message_broker, "Подписывается на телеметрию", "AMQP")
+Rel(internal_integration_service, message_broker, "Читает/публикует сообщения", "AMQP")
+
+Rel(integration_broker, things_mqtt, "Подключается по протоколам MQTT", "MQTT")
+Rel(internal_integration_service, integration_broker, "Читает/публикует сообщения", "AMQP")
+
+Rel(video_integration_service, things_video, "Читает/записывает бинарные потоки", "TCP")
+Rel(internal_integration_service, video_integration_service, "Читает/записывает бинарные потоки", "TCP")
+
+@enduml

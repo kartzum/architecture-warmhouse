@@ -1,0 +1,24 @@
+@startuml "enterprise"
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Пользователь", "Управляет устройствами")
+
+Enterprise_Boundary(warm_house, "Система Теплый дом") {
+    Container(web_app, "Web Application", "JavaScript/React", "Веб-интерфейс для управления системой")
+
+    Container(api_server, "API Server", "Go", "Веб-приложение")
+}
+
+ContainerDb(postgresql, "PostgreSQL Database", "PostgreSQL", "Хранит все данные")
+
+System_Ext(temperature_sensors, "Temperature Sensors", "Датчики температуры")
+System_Ext(heating_sensors, "Heating Sensors", "Датчики отопления")
+
+Rel(user, web_app, "Использует", "HTTPS")
+Rel(web_app, api_server, "Вызовы API", "REST/HTTPS")
+Rel(api_server, postgresql, "Читает/пишет данные", "")
+Rel(temperature_sensors, api_server, "Обработка данных и сообщений от датчиков температуры", "")
+Rel(heating_sensors, api_server, "Обработка данных и сообщений от датчиков отопления", "")
+
+@enduml
