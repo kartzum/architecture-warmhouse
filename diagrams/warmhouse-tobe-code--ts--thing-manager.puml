@@ -1,0 +1,95 @@
+@startuml
+    class ThingManager {
+        -thingCommandProcessors: List[ThingCommandProcessor]
+        -thingProcessingService: ThingProcessingService
+        +sendThingCommand(thingCommand: ThingCommand) Void
+        +listenThingCommand(payload: ThingInputCommand): Void
+    }
+
+    class ThingCommand {
+        +id: UUID
+        +thingCommandType: ThingCommandType
+    }
+
+    class ThingCommandType {
+        +id: UUID
+    }
+
+    class Thing {
+        +id: UUID
+        +name: String
+        +thingType: ThingType
+        +thingStatus: ThingStatus
+    }
+
+    class ThingType {
+        +id: UUID
+        +name: String
+    }
+
+    class ThingStatus {
+      +name: String
+    }
+
+    class Building {
+      +id: UUID
+    }
+
+    class Room {
+      +id: UUID
+    }
+
+    class User {
+      +id: UUID
+    }
+
+    interface ThingCommandProcessor {
+        +executeCommand(payload: ThingInputCommand)
+    }
+
+    interface ThingInputCommand {
+
+    }
+
+    class ThingProcessingService {
+        +findThingById(id: UUID) Thing
+        +updateThingStatus(id: UUID, thingStatus: String): Thing
+        +getThingStatus(id: UUID): String
+        +deleteThingById(id: UUID): Void
+        +sendThingCommand(id: UUID, payload: Object): Thing
+    }
+
+    class ThingController {
+        -thingProcessingService: ThingProcessingService
+        +getThingById(id: UUID): ThingData
+        +updateThingStatus(id: UUID, thingStatus: String): ThingData
+        +getThingStatus(id: UUID): String
+        +deleteThingById(id: UUID): Void
+        +sendThingCommand(data: ThingInputCommandData): ThingData
+    }
+
+    class ThingData {
+    }
+
+    class ThingInputCommandData {
+        +id: UUID
+        +payload: Object
+    }
+
+    Thing --o ThingType
+    Thing --o ThingStatus
+    ThingCommand --o ThingCommandType
+
+    User o-- Building
+    Building o-- Room
+    Room o-- Thing
+
+    ThingManager o--  ThingCommandProcessor
+    ThingManager -- ThingInputCommand
+    ThingManager -- ThingCommand
+    ThingManager -- ThingProcessingService
+
+    ThingProcessingService -- Thing
+
+    ThingController -- ThingProcessingService
+@enduml

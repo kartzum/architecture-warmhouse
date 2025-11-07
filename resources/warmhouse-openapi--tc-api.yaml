@@ -1,0 +1,216 @@
+openapi: 3.0.4
+info:
+  title: Swagger Warmhouse - OpenAPI 3.0
+  description: |-
+    warmhouse
+  termsOfService: https://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.12
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+servers:
+  - url: https://warmhouse.swagger.io/api/v3
+tags:
+  - name: thing
+    description: Everything about your Things
+    externalDocs:
+      description: Find out more
+      url: https://swagger.io
+paths:
+  /thing/{id}:
+    get:
+      tags:
+        - thing
+      summary: Find thing by ID.
+      description: Returns a single thing.
+      operationId: getThingById
+      parameters:
+        - name: id
+          in: path
+          description: ID of thing to return
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThingData'
+        '404':
+          description: Thing not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - thing
+      summary: Delete thing by ID.
+      description: Delete a single thing.
+      operationId: deleteThingById
+      parameters:
+        - name: id
+          in: path
+          description: ID of thing to return
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: successful operation
+        '404':
+          description: Thing not found
+        '500':
+          description: Unexpected error
+  /thing/{id}/updateThingStatus:
+    post:
+      tags:
+        - thing
+      summary: Update status.
+      description: Update status.
+      operationId: updateThingStatus
+      parameters:
+        - name: id
+          in: path
+          description: ID of thing
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThingUpdateStatusData'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThingData'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /thing/{id}/getThingStatus:
+    get:
+      tags:
+        - thing
+      summary: Get thing status by ID.
+      description: Returns a single thing status.
+      operationId: getThingStatus
+      parameters:
+        - name: id
+          in: path
+          description: ID of thing to return
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/String'
+        '404':
+          description: Thing not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /thing/{id}/sendThingCommand:
+    post:
+      tags:
+        - thing
+      summary: Send command.
+      description: Send command.
+      operationId: sendThingCommand
+      parameters:
+        - name: id
+          in: path
+          description: ID of thing to return
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThingInputCommandData'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThingData'
+        '404':
+          description: Thing not found
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    ThingData:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          type: string
+          format: UUID
+          example: 35f23ed5-aa90-4f89-949b-f2562e423b65
+        name:
+          type: string
+          example: temperature-sensor
+        thingType:
+          type: string
+          example: mqtt-temperature-sensor
+        thingStatus:
+          type: string
+          example: CONNECTED
+    ThingUpdateStatusData:
+      properties:
+        name:
+          type: string
+          example: CONNECTED
+    ThingInputCommandData:
+      type: object
+      properties:
+        payload:
+          type: object
+    String:
+      type: string
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+
