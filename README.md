@@ -188,3 +188,29 @@ UI-взаимодействие построено на базе [REST](https://
 
 См. wh-t - temperature-api. Все описание в wh-t/README.md
 
+**smart_home**
+
+```
+curl http://localhost:8081/temperature?location=42
+```
+```
+{"value":22.21,"unit":"°C","timestamp":"2025-11-07T10:58:58.623791481Z","location":"42","status":"active","sensor_id":"0","sensor_type":"temperature","description":"Te
+```
+
+```
+curl -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "Living Room Temperature", "type": "temperature", "location": "Living Room", "unit": "°C"}' \
+  http://localhost:8080/api/v1/sensors
+```
+```
+{"id":1,"name":"Living Room Temperature","type":"temperature","location":"Living Room","value":0,"unit":"°C","status":"inactive","last_updated":"2025-11-07T10:59:36.842211Z","created_at":"2025-11-07T10:59:36.842211Z"
+```
+
+```
+curl http://localhost:8080/api/v1/sensors
+```
+```
+[{"id":1,"name":"Living Room Temperature","type":"temperature","location":"Living Room","value":26.9,"unit":"°C","status":"active","last_updated":"2025-11-07T11:00:12.741938867Z","created_at":"2025-11-07T10:59:36.842211Z"}]
+```
+
