@@ -180,10 +180,7 @@ UI-взаимодействие построено на базе [REST](https://
 > 2) Приложение следует упаковать в Docker и добавить в docker-compose. Порт по умолчанию должен быть 8081
 > 3) Кроме того для smart_home приложения требуется база данных - добавьте в docker-compose файл настройки для запуска postgres с указанием скрипта инициализации ./smart_home/init.sql
 
-> Для проверки можно использовать Postman коллекцию smarthome-api.postman_collection.json и вызвать:
-
-> - Create Sensor
-> - Get All Sensors
+> Для проверки можно использовать Postman коллекцию smarthome-api.postman_collection.json и вызвать: Create Sensor, Get All Sensors
 
 > Должно при каждом вызове отображаться разное значение температуры
 > Ревьюер будет проверять точно так же.
